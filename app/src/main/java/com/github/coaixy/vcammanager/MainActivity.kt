@@ -14,6 +14,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.*
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.SpanStyle
@@ -21,6 +23,10 @@ import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.github.coaixy.vcammanager.ui.theme.Purple500
 import com.github.coaixy.vcammanager.ui.theme.VcamManagerTheme
@@ -38,27 +44,115 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colors.background
                 ) {
                     checkAndroid11FilePermission()
-                    createFrame()
-                    val list = getFileList()
-                    var index = 0
-                    val scaffoldState = rememberScaffoldState(rememberDrawerState(DrawerValue.Open))
-                    Scaffold(
-                        scaffoldState = scaffoldState,
-                        topBar = { TopAppBar(title = {Text("VcamManager")},backgroundColor = Purple500)  },
-//                        floatingActionButtonPosition = FabPosition.End,
-//                        floatingActionButton = { FloatingActionButton(onClick = {}){
-//                            Text("X")
-//                        } },
-//                        drawerContent = { Text(text = "drawerContent") },
-                        content = {
-                            LazyColumn(){
-                                items(list.size){
-                                    CardDemo(f = list[index])
-                                    index++
-                                }
+                    ComposeNavigation()
+                }
+            }
+        }
+    }
+    @Composable
+    fun ComposeNavigation() {
+        val navController = rememberNavController()
+        NavHost(
+            navController = navController,
+            startDestination = "first"
+        ) {
+            composable("first") {
+                first(navController = navController)
+            }
+            composable("second"){
+                second(navController = navController)
+            }
+        }
+    }
+    @Composable
+    fun second(navController: NavController){
+        createTrueFrame()
+        val list = getVideoFileList()
+        var index = 0
+        val number = if (list.size>10){ 10 }else{ list.size }
+        val scaffoldState = rememberScaffoldState(rememberDrawerState(DrawerValue.Open))
+        Scaffold(
+            scaffoldState = scaffoldState,
+            topBar = {
+                TopAppBar(title = {Text("TrueManager")},backgroundColor = Purple500
+                    , navigationIcon = {
+                        IconButton(onClick = { navController.navigate("first") }) {
+                            Icon(imageVector = Icons.Filled.ArrowBack, contentDescription = null)
+                        }
+                    }
+                ) },
+            content = {
+                LazyColumn(){
+                    items(number){
+                        Card2(f = list[index])
+                        index++
+                    }
+                }
+            },
+        )
+    }
+    @Composable
+    fun first(navController: NavController){
+        createVirtualFrame()
+        val list = getVirtualVideoList()
+        var index = 0
+        val scaffoldState = rememberScaffoldState(rememberDrawerState(DrawerValue.Open))
+        Scaffold(
+            scaffoldState = scaffoldState,
+            topBar = {
+                TopAppBar(title = {Text("VcamManager")},backgroundColor = Purple500
+                    , navigationIcon = {
+                        IconButton(onClick = { navController.navigate("second") }) {
+                            Icon(imageVector = Icons.Filled.ArrowForward, contentDescription = null)
+                        }
+                    }
+                ) },
+            content = {
+                LazyColumn(){
+                    items(list.size){
+                        Card1(f = list[index])
+                        index++
+                    }
+                }
+            },
+        )
+    }
+    @Composable
+    fun Card2(f:File) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(15.dp)
+                .clickable {
+                    if (f.name != "virtual.mp4") {
+//                        f.renameTo(File(path + "temp.mp4"))
+//                        File(path + "virtual.mp4").renameTo(f)
+//                        File(path + "temp.mp4").renameTo(File(path + "virtual.mp4"))
+//                        recreate()
+                    } else {
+                        Toast
+                            .makeText(this, "你无法选择这个", Toast.LENGTH_SHORT)
+                            .show()
+                    }
+                },
+            elevation = 10.dp
+        ) {
+            Column(
+                modifier = Modifier.padding(15.dp)
+            ) {
+                Row {
+                    AsyncImage(
+                        model = f.absolutePath.replace(f.name,"s/")+f.name.replace(".mp4",".png"),
+                        contentDescription = null,
+                        modifier = Modifier.size(50.dp)
+                    )
+                    Text(
+                        buildAnnotatedString {
+                            append("FileName:")
+                            withStyle(style = SpanStyle(fontWeight = FontWeight.W900)) {
+                                append(f.name.replace(".mp4",""))
                             }
-                        },
-//                        bottomBar = { BottomAppBar(backgroundColor = materialBlue700) { Text("BottomAppBar") } }
+                        }
                     )
 
                 }
@@ -66,7 +160,7 @@ class MainActivity : ComponentActivity() {
         }
     }
     @Composable
-    fun CardDemo(f:File) {
+    fun Card1(f:File) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
@@ -128,22 +222,51 @@ class MainActivity : ComponentActivity() {
             .show()
     }
 
-    private val path = "/storage/emulated/0/DCIM/Camera1/"
+    private val path = "/storage/emulated/0/DCIM/"
 
     /**
-     * 创建缩略图
+     * 创建True缩略图
      */
-    private fun createFrame(){
+    private fun createTrueFrame(){
         //首先删除原来的缩略图
-        for (i in getFrameList()){
+        for (i in getFrameList(0)){
             i.delete()
 //            Toast.makeText(this, i.name, Toast.LENGTH_SHORT).show()
         }
         //创建缩略图
-        for (i in getFileList()){
+        var count = 1
+        for (i in getVideoFileList()){
+            if (count==10)break
             val media = MediaMetadataRetriever()
             media.setDataSource(i.absolutePath)
             val file = File(i.absolutePath.replace(i.name,"s/")+i.name.replace(".mp4",".png"))
+            if (!file.exists())file.createNewFile()
+            //文件输出流
+            val fileOutputStream = FileOutputStream(file)
+            //压缩图片，如果要保存png，就用Bitmap.CompressFormat.PNG，要保存jpg就用Bitmap.CompressFormat.JPEG,质量是100%，表示不压缩
+            media.frameAtTime?.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream)
+            //写入，这里会卡顿，因为图片较大
+            fileOutputStream.flush()
+            //记得要关闭写入流
+            fileOutputStream.close()
+            count++
+        }
+    }
+    /**
+     * 创建Virtual缩略图
+     */
+    private fun createVirtualFrame(){
+        //首先删除原来的缩略图
+        for (i in getFrameList(1)){
+            i.delete()
+//            Toast.makeText(this, i.name, Toast.LENGTH_SHORT).show()
+        }
+        //创建缩略图
+        for (i in getVirtualVideoList()){
+            val media = MediaMetadataRetriever()
+            media.setDataSource(i.absolutePath)
+            val file = File(i.absolutePath.replace(i.name,"s/")+i.name.replace(".mp4",".png"))
+            if (!file.exists())file.createNewFile()
             //文件输出流
             val fileOutputStream = FileOutputStream(file)
             //压缩图片，如果要保存png，就用Bitmap.CompressFormat.PNG，要保存jpg就用Bitmap.CompressFormat.JPEG,质量是100%，表示不压缩
@@ -155,9 +278,22 @@ class MainActivity : ComponentActivity() {
         }
     }
     /**
-     * 返回视频文件列表
+     * 返回Camera视频列表
      */
-    private fun getFileList():MutableList<File>{
+    private fun getVideoFileList():MutableList<File>{
+        val path = path+"Camera/"
+        val result = mutableListOf<File>()
+        val tree = File(path).walk()
+        tree.maxDepth(1).filter { it.extension=="mp4" }.forEach {
+            result.add(it)
+        }
+        return result
+    }
+    /**
+     * 返回Camera1视频文件列表
+     */
+    private fun getVirtualVideoList():MutableList<File>{
+        val path = path+"Camera1/"
         val result = mutableListOf<File>()
         val tree = File(path).walk()
         tree.maxDepth(1).filter { it.extension=="mp4" }.forEach {
@@ -168,7 +304,9 @@ class MainActivity : ComponentActivity() {
     /**
      * 返回缩略图列表
      */
-    private fun getFrameList():MutableList<File>{
+    private fun getFrameList(flag:Int):MutableList<File>{
+        val path = if (flag == 1){path+"Camera1/s/"}else{path+"Camera/s/"}
+        if (!File(path).exists())File(path).mkdir()
         val result = mutableListOf<File>()
         val tree = File(path+"s/").walk()
         tree.maxDepth(1).filter { it.extension=="png" }.forEach {
