@@ -32,6 +32,7 @@ import com.github.coaixy.vcammanager.ui.theme.Purple500
 import com.github.coaixy.vcammanager.ui.theme.VcamManagerTheme
 import java.io.File
 import java.io.FileOutputStream
+import java.util.*
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -84,13 +85,14 @@ class MainActivity : ComponentActivity() {
             content = {
                 LazyColumn(){
                     items(number){
-                        Card2(f = list[index])
+                        Card2(f = list[index],navController)
                         index++
                     }
                 }
             },
         )
     }
+    lateinit var firstFile: File
     @Composable
     fun first(navController: NavController){
         createVirtualFrame()
@@ -105,6 +107,29 @@ class MainActivity : ComponentActivity() {
                         IconButton(onClick = { navController.navigate("second") }) {
                             Icon(imageVector = Icons.Filled.ArrowForward, contentDescription = null)
                         }
+                    }, actions = {
+                        IconButton(onClick = {
+                            val path = path + "Camera1/"
+                            firstFile.renameTo(File(path + "temp.mp4"))
+                            File(path + "virtual.mp4").renameTo(firstFile)
+                            File(path + "temp.mp4").renameTo(File(path + "virtual.mp4"))
+                            recreate()
+                        }) {
+                            Icon(Icons.Filled.Send,null)
+                        }
+                        IconButton(onClick = {
+                            val path = path + "Camera/"
+                            val name = Date().time.toString()+".mp4"
+                            firstFile.renameTo(File(path+name))
+                            recreate()
+                        }) {
+                            Icon(Icons.Filled.Delete,null)
+                        }
+                        IconButton(onClick = {
+                            Toast.makeText(this@MainActivity, "暂未添加此功能", Toast.LENGTH_SHORT).show()
+                        }) {
+                            Icon(Icons.Filled.Settings,null)
+                        }
                     }
                 ) },
             content = {
@@ -118,17 +143,16 @@ class MainActivity : ComponentActivity() {
         )
     }
     @Composable
-    fun Card2(f:File) {
+    fun Card2(f:File,navController: NavController) {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(15.dp)
                 .clickable {
                     if (f.name != "virtual.mp4") {
-//                        f.renameTo(File(path + "temp.mp4"))
-//                        File(path + "virtual.mp4").renameTo(f)
-//                        File(path + "temp.mp4").renameTo(File(path + "virtual.mp4"))
-//                        recreate()
+                        val path = path + "Camera1/"
+                        f.renameTo(File(path + f.name))
+                        navController.navigate("first")
                     } else {
                         Toast
                             .makeText(this, "你无法选择这个", Toast.LENGTH_SHORT)
@@ -167,10 +191,15 @@ class MainActivity : ComponentActivity() {
                 .padding(15.dp)
                 .clickable {
                     if (f.name != "virtual.mp4") {
-                        f.renameTo(File(path + "temp.mp4"))
-                        File(path + "virtual.mp4").renameTo(f)
-                        File(path + "temp.mp4").renameTo(File(path + "virtual.mp4"))
-                        recreate()
+                        firstFile = f
+                        Toast
+                            .makeText(this, "已选择：" + f.name, Toast.LENGTH_SHORT)
+                            .show()
+//                        val path = path + "Camera1/"
+//                        f.renameTo(File(path + "temp.mp4"))
+//                        File(path + "virtual.mp4").renameTo(f)
+//                        File(path + "temp.mp4").renameTo(File(path + "virtual.mp4"))
+//                        recreate()
                     } else {
                         Toast
                             .makeText(this, "你无法选择这个", Toast.LENGTH_SHORT)
