@@ -109,19 +109,23 @@ class MainActivity : ComponentActivity() {
                         }
                     }, actions = {
                         IconButton(onClick = {
-                            val path = path + "Camera1/"
-                            firstFile.renameTo(File(path + "temp.mp4"))
-                            File(path + "virtual.mp4").renameTo(firstFile)
-                            File(path + "temp.mp4").renameTo(File(path + "virtual.mp4"))
-                            recreate()
+                            if (firstFile!=null){
+                                val path = path + "Camera1/"
+                                firstFile.renameTo(File(path + "temp.mp4"))
+                                File(path + "virtual.mp4").renameTo(firstFile)
+                                File(path + "temp.mp4").renameTo(File(path + "virtual.mp4"))
+                                recreate()
+                            }
                         }) {
                             Icon(Icons.Filled.Send,null)
                         }
                         IconButton(onClick = {
-                            val path = path + "Camera/"
-                            val name = Date().time.toString()+".mp4"
-                            firstFile.renameTo(File(path+name))
-                            recreate()
+                            if (firstFile!=null){
+                                val path = path + "Camera/"
+                                val name = Date().time.toString()+".mp4"
+                                firstFile.renameTo(File(path+name))
+                                recreate()
+                            }
                         }) {
                             Icon(Icons.Filled.Delete,null)
                         }
