@@ -199,11 +199,6 @@ class MainActivity : ComponentActivity() {
                         Toast
                             .makeText(this, "已选择：" + f.name, Toast.LENGTH_SHORT)
                             .show()
-//                        val path = path + "Camera1/"
-//                        f.renameTo(File(path + "temp.mp4"))
-//                        File(path + "virtual.mp4").renameTo(f)
-//                        File(path + "temp.mp4").renameTo(File(path + "virtual.mp4"))
-//                        recreate()
                     } else {
                         Toast
                             .makeText(this, "你无法选择这个", Toast.LENGTH_SHORT)
