@@ -1,3 +1,4 @@
+# 来个大佬帮我弄下设置后自动更新界面（写不来）
 # VcamManager
 
 [Vcam(android_virtual_cam)](https://github.com/w2016561536/android_virtual_cam)
